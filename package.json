@@ -1,0 +1,18 @@
+{
+  "name": "devebot-dp-opflow",
+  "version": "0.2.0",
+  "description": "Devebot default plugin for Opflow",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "devebot",
+  "license": "MIT",
+  "peerDependencies": {
+    "devebot": "^0.2.2"
+  },
+  "dependencies": {
+    "devebot": "^0.2.2",
+    "opflow": "^0.1.7"
+  }
+}
