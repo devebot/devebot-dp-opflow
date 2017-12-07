@@ -1,0 +1,23 @@
+var Devebot = require('devebot');
+var lodash = Devebot.require('lodash');
+
+module.exports = {
+	getDefaultTimeout: function() {
+		return 600000;
+	},
+	getApp: function() {
+		return require('../app');
+	},
+	getApiConfig: function(ext) {
+		ext = ext || {};
+		return lodash.merge({
+			host: '127.0.0.1',
+			port: 17779,
+			path: '/demo-app',
+			authen: {
+				token_key: 'devebot',
+				token_secret: 's3cr3tpa$$w0rd'
+			}
+		}, ext);
+	}
+}
