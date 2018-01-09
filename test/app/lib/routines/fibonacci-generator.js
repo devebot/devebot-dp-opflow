@@ -7,7 +7,7 @@ var runhookSetting;
 
 var runhookDialect = {
   info: {
-    mode: 'direct',
+    mode: 'remote',
     description: 'Fibonacci Generator',
     schema: {
       "type": "object",
@@ -20,7 +20,7 @@ var runhookDialect = {
       }
     }
   },
-  handler: function(opts, ctx) {
+  handler: function(opts, payload, ctx) {
     var LX = this.loggingFactory.getLogger();
     var LT = this.loggingFactory.getTracer();
 
@@ -28,12 +28,12 @@ var runhookDialect = {
       text: ' - runhook start'
     }));
 
-    var number = opts.number;
+    var number = payload.number;
     var result = fibonacci(number, number, ctx.progressMeter);
 
     var output = Promise.resolve([{
         type: 'json',
-        title: 'Plugin2 - Routine1',
+        title: 'Fibonacci Generation Result',
         data: { fibonacci: result }
     }]);
 

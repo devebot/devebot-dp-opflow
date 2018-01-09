@@ -20,20 +20,20 @@ describe('devebot:runhook:progress:meter', function() {
 	});
 
 	beforeEach(function(done) {
+		api = new DevebotApi(lab.getApiConfig());
 		app.server.start().then(function() {
 			done();
 		});
-		api = new DevebotApi(lab.getApiConfig());
 	});
 
 	afterEach(function(done) {
 		api = null;
 		app.server.teardown().then(function() {
-			done();
+			setTimeout(done, 0);
 		});
 	});
 
-	it.only('direct runhook should return correct result', function(done) {
+	it('direct runhook should return correct result', function(done) {
 		var number = 15;
 		var expectedValue = fibonacci(number);
 		var expectedPrgr = [];
@@ -42,22 +42,19 @@ describe('devebot:runhook:progress:meter', function() {
 		});
 		var returnedPrgr = [];
 		new Promise(function(resolved, rejected) {
-			api.on('failure', function(result) {
+			api.on('failed', function(result) {
 				rejected(result);
 			});
-			api.on('success', function(result) {
+			api.on('completed', function(result) {
 				resolved(result);
 			});
 			api.on('progress', function(status) {
 				returnedPrgr.push(status.progress);
 			});
 			api.execCommand({
-				name: 'runhook-call',
-				options: {
-					name: 'fibonacci-calc',
-					data: JSON.stringify({ 'number': number }),
-					mode: 'direct'
-				}
+				name: 'fibonacci-generator',
+				data: { 'number': number },
+				mode: 'remote'
 			});
 		}).then(function(result) {
 			debugx.enabled && debugx('Expected progress: %s', JSON.stringify(expectedPrgr));
@@ -81,22 +78,19 @@ describe('devebot:runhook:progress:meter', function() {
 		});
 		var returnedPrgr = [];
 		new Promise(function(resolved, rejected) {
-			api.on('failure', function(result) {
+			api.on('failed', function(result) {
 				rejected(result);
 			});
-			api.on('success', function(result) {
+			api.on('completed', function(result) {
 				resolved(result);
 			});
 			api.on('progress', function(status) {
 				returnedPrgr.push(status.progress);
 			});
 			api.execCommand({
-				name: 'runhook-call',
-				options: {
-					name: 'fibonacci-calc',
-					data: JSON.stringify({ 'number': number }),
-					mode: 'remote'
-				}
+				name: 'fibonacci-generator',
+				data: { 'number': number },
+				mode: 'remote'
 			});
 		}).then(function(result) {
 			debugx.enabled && debugx('Expected progress: %s', JSON.stringify(expectedPrgr));
@@ -114,19 +108,16 @@ describe('devebot:runhook:progress:meter', function() {
 	it('return error when input data is invalid with schema', function(done) {
 		var number = 101;
 		new Promise(function(resolved, rejected) {
-			api.on('failure', function(result) {
+			api.on('failed', function(result) {
 				rejected(result);
 			});
-			api.on('success', function(result) {
+			api.on('completed', function(result) {
 				resolved(result);
 			});
 			api.execCommand({
-				name: 'runhook-call',
-				options: {
-					name: 'fibonacci-calc',
-					data: JSON.stringify({ 'number': number }),
-					mode: 'remote'
-				}
+				name: 'fibonacci-generator',
+				data: { 'number': number },
+				mode: 'remote'
 			});
 		}).then(function(result) {
 			debugx.enabled && debugx(JSON.stringify(result, null, 2));
@@ -141,8 +132,6 @@ describe('devebot:runhook:progress:meter', function() {
 });
 
 var fibonacci = function fibonacci(n) {
-  if (n == 0 || n == 1)
-    return n;
-  else
-    return fibonacci(n - 1) + fibonacci(n - 2);
+	if (n == 0 || n == 1) return n;
+	return fibonacci(n - 1) + fibonacci(n - 2);
 }
