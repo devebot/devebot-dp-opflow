@@ -6,16 +6,14 @@ module.exports = {
         rpcMaster: {
           uri: process.env.DEVEBOT_OPFLOW_URI || 'amqp://localhost',
           exchangeName: 'devebot-jobqueue-exchange',
-          routingKey: 'devebot-jobqueue-rpc',
-          autoinit: false
+          routingKey: 'devebot-jobqueue-rpc'
         },
         rpcWorker: {
           uri: process.env.DEVEBOT_OPFLOW_URI || 'amqp://localhost',
           exchangeName: 'devebot-jobqueue-exchange',
           routingKey: 'devebot-jobqueue-rpc',
           operatorName: 'devebot-jobqueue-operator',
-          responseName: 'devebot-jobqueue-response',
-          autoinit: false
+          responseName: 'devebot-jobqueue-response'
         },
         verbose: false
       }
