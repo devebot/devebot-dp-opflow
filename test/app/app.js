@@ -1,7 +1,8 @@
 'use strict';
 
 var app = require('devebot').launchApplication({
-  appRootPath: __dirname
+  appRootPath: __dirname,
+  privateSandbox: 'general'
 }, [
 	{
 		name: 'devebot-dp-opflow',

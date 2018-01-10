@@ -4,19 +4,19 @@ var lab = require('../lab');
 var Devebot = require('devebot');
 var Promise = Devebot.require('bluebird');
 var lodash = Devebot.require('lodash');
-var debugx = Devebot.require('pinbug')('bdd:devebot:runhook:progress:meter');
+var debugx = Devebot.require('pinbug')('bdd:devebot-dp-opflow:standalone');
 var assert = require('chai').assert;
 var expect = require('chai').expect;
 var util = require('util');
 var DevebotApi = require('devebot-api');
 
-describe('devebot:runhook:progress:meter', function() {
+describe('devebot-dp-opflow:standalone', function() {
 	this.timeout(lab.getDefaultTimeout());
 
 	var app, api;
 
 	before(function() {
-		app = lab.getApp();
+		app = lab.getApp('app');
 	});
 
 	beforeEach(function(done) {

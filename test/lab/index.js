@@ -5,8 +5,9 @@ module.exports = {
 	getDefaultTimeout: function() {
 		return 600000;
 	},
-	getApp: function() {
-		return require('../app');
+	getApp: function(bootFile) {
+		bootFile = bootFile || 'index';
+		return require('../app/' + bootFile);
 	},
 	getApiConfig: function(ext) {
 		ext = ext || {};
