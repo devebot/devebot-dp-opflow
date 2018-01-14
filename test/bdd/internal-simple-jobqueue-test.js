@@ -1,6 +1,5 @@
 'use strict';
 
-var lab = require('../lab');
 var Devebot = require('devebot');
 var Promise = Devebot.require('bluebird');
 var lodash = Devebot.require('lodash');
@@ -8,19 +7,20 @@ var debugx = Devebot.require('pinbug')('bdd:devebot-dp-opflow:standalone');
 var assert = require('chai').assert;
 var expect = require('chai').expect;
 var util = require('util');
-var DevebotApi = require('devebot-api');
+var DT = require('devebot-test');
+var TS = require('devebot-test').toolset;
 
 describe('devebot-dp-opflow:standalone', function() {
-	this.timeout(lab.getDefaultTimeout());
+	this.timeout(DT.DEFAULT_TIMEOUT);
 
 	var app, api;
 
 	before(function() {
-		app = lab.getApp('app');
+		app = DT.loadTestModule('app', 'app.js');
 	});
 
 	beforeEach(function(done) {
-		api = new DevebotApi(lab.getApiConfig());
+		api = DT.connectService();
 		app.server.start().then(function() {
 			done();
 		});
@@ -42,20 +42,21 @@ describe('devebot-dp-opflow:standalone', function() {
 		});
 		var returnedPrgr = [];
 		new Promise(function(resolved, rejected) {
-			api.on('failed', function(result) {
-				rejected(result);
-			});
-			api.on('completed', function(result) {
-				resolved(result);
-			});
-			api.on('progress', function(status) {
-				returnedPrgr.push(status.progress);
-			});
-			api.execCommand({
-				name: 'fibonacci-generator',
-				data: { 'number': number },
-				mode: 'remote'
-			});
+			api
+				.on('progress', function(status) {
+					returnedPrgr.push(status.progress);
+				})
+				.on('failed', function(result) {
+					rejected(result);
+				})
+				.on('completed', function(result) {
+					resolved(result);
+				})
+				.execCommand({
+					name: 'fibonacci-generator',
+					data: { 'number': number },
+					mode: 'remote'
+				});
 		}).then(function(result) {
 			debugx.enabled && debugx('Expected progress: %s', JSON.stringify(expectedPrgr));
 			debugx.enabled && debugx('Returned progress: %s', JSON.stringify(returnedPrgr));

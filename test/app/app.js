@@ -4,10 +4,10 @@ var app = require('devebot').launchApplication({
   appRootPath: __dirname,
   privateSandbox: 'general'
 }, [
-	{
-		name: 'devebot-dp-opflow',
-		path: __dirname + '/../../index'
-	}
+  {
+    name: 'devebot-dp-opflow',
+    path: __dirname + '/../../index'
+  }
 ], []);
 
 if (require.main === module) app.server.start();
