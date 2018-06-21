@@ -1,40 +1,34 @@
 'use strict';
 
-var Promise = Devebot.require('bluebird');
-var lodash = Devebot.require('lodash');
-var chores = Devebot.require('chores');
-var opflow = require('opflow');
+const Promise = Devebot.require('bluebird');
+const lodash = Devebot.require('lodash');
+const chores = Devebot.require('chores');
+const opflow = require('opflow');
 
-var Service = function(params) {
-  var self = this;
+function JobqueueWorker(params) {
   params = params || {};
 
-  var getSandboxName = function() {
-    return params.sandboxName;
-  };
+  let self = this;
+  let LX = params.loggingFactory.getLogger();
+  let LT = params.loggingFactory.getTracer();
 
-  var LX = params.loggingFactory.getLogger();
-  var LT = params.loggingFactory.getTracer();
-
-  LX.has('conlog') && LX.log('conlog', LT.add({
-    sandboxName: getSandboxName()
-  }).stringify({
+  LX.has('conlog') && LX.log('conlog', LT.add({ sandboxName: params.sandboxName }).toMessage({
     tags: [ 'constructor-begin' ],
     text: ' + constructor start in sandbox <{sandboxName}>'
   }));
 
-  var sandboxRegistry = params['devebot/sandboxRegistry'];
-  var pluginCfg = lodash.get(params, ['sandboxConfig'], {});
-  var rpcWorkerCfg = lodash.get(pluginCfg, 'rpcWorker', { enabled: false });
+  let sandboxRegistry = params['devebot/sandboxRegistry'];
+  let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  let rpcWorkerCfg = lodash.get(pluginCfg, 'rpcWorker', { enabled: false });
   rpcWorkerCfg.autoinit = false;
-  var rpcWorker = null;
+  let rpcWorker = null;
 
   self.ready = function() {
     if (rpcWorkerCfg.enabled !== false) {
       rpcWorker = rpcWorker || new opflow.RpcWorker(rpcWorkerCfg);
     }
     if (!rpcWorker) return Promise.resolve();
-    var runhookManager = sandboxRegistry.lookupService('devebot/runhookManager');
+    let runhookManager = sandboxRegistry.lookupService('devebot/runhookManager');
     return rpcWorker.ready().then(function() {
       LX.has('conlog') && LX.log('conlog', LT.toMessage({
         text: ' - rpcWorker is available'
@@ -42,26 +36,20 @@ var Service = function(params) {
       return rpcWorker.process(function(routineId) {
         return true;
       }, function(body, headers, response) {
-        var routineId = headers.routineId;
-        var requestId = headers.requestId;
-        var reqTr = LT.branch({ key: 'requestId', value: requestId });
+        let routineId = headers.routineId;
+        let requestId = headers.requestId;
+        let reqTr = LT.branch({ key: 'requestId', value: requestId });
 
-        LX.has('trace') && LX.log('trace', reqTr.add({
-          routineId: routineId
-        }).stringify({
+        LX.has('trace') && LX.log('trace', reqTr.add({ routineId }).toMessage({
           text: '{routineId}#{requestId}: requested'
         }));
 
-        var runhook = JSON.parse(body);
-        var runhookInfo = lodash.omit(runhook, ['options', 'payload']);
-        var runhookName = chores.getFullname([runhook.package, runhook.name]);
+        let runhook = JSON.parse(body);
+        let runhookInfo = lodash.omit(runhook, ['options', 'payload']);
+        let runhookName = chores.getFullname([runhook.package, runhook.name]);
 
         if (runhookManager.isAvailable(runhook)) {
-          LX.has('trace') && LX.log('trace', reqTr.add({
-            routineId: routineId,
-            runhookName: runhookName,
-            runhookInfo: runhookInfo
-          }).stringify({
+          LX.has('trace') && LX.log('trace', reqTr.add({ routineId, runhookName, runhookInfo }).toMessage({
             text: '{runhookName}#{requestId} - started: {runhookInfo}'
           }));
           response.emitStarted();
@@ -71,27 +59,18 @@ var Service = function(params) {
               progress: response.emitProgress
             })
           }).then(function(result) {
-            LX.has('trace') && LX.log('trace', reqTr.add({
-              runhookName: runhookName,
-              result: result
-            }).stringify({
+            LX.has('trace') && LX.log('trace', reqTr.add({ runhookName, result }).toMessage({
               text: '{runhookName}#{requestId} - completed: {result}'
             }));
             response.emitCompleted(result);
           }).catch(function(error) {
-            LX.has('error') && LX.log('error', reqTr.add({
-              runhookName: runhookName,
-              error: error
-            }).stringify({
+            LX.has('error') && LX.log('error', reqTr.add({ runhookName, error }).toMessage({
               text: '{runhookName}#{requestId} - failed: {error}'
             }));
             response.emitFailed(error);
           });
         } else {
-          LX.has('trace') && LX.log('trace', reqTr.add({
-            runhookName: runhookName,
-            runhookInfo: runhookInfo
-          }).stringify({
+          LX.has('trace') && LX.log('trace', reqTr.add({ runhookName, runhookInfo }).toMessage({
             text: '{runhookName}#{requestId}: {runhookInfo} - not found'
           }));
           response.emitFailed({
@@ -104,7 +83,7 @@ var Service = function(params) {
 
   self.close = function() {
     if (!rpcWorker) return Promise.resolve();
-    var tmpWorker = rpcWorker;
+    let tmpWorker = rpcWorker;
     rpcWorker = null;
     return tmpWorker.close();
   };
@@ -115,6 +94,6 @@ var Service = function(params) {
   }));
 };
 
-Service.referenceList = [ 'devebot/sandboxRegistry' ];
+JobqueueWorker.referenceList = [ 'devebot/sandboxRegistry' ];
 
-module.exports = Service;
+module.exports = JobqueueWorker;

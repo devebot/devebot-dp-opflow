@@ -1,23 +1,17 @@
 'use strict';
 
-var Devebot = require('devebot');
-var Promise = Devebot.require('bluebird');
-var lodash = Devebot.require('lodash');
+const Devebot = require('devebot');
+const Promise = Devebot.require('bluebird');
+const lodash = Devebot.require('lodash');
 
-var Service = function(params) {
-  var self = this;
+function JobqueueTrigger(params) {
   params = params || {};
 
-  var getSandboxName = function() {
-    return params.sandboxName;
-  };
+  let self = this;
+  let LX = params.loggingFactory.getLogger();
+  let LT = params.loggingFactory.getTracer();
 
-  var LX = params.loggingFactory.getLogger();
-  var LT = params.loggingFactory.getTracer();
-
-  LX.has('conlog') && LX.log('conlog', LT.add({
-    sandboxName: getSandboxName()
-  }).stringify({
+  LX.has('conlog') && LX.log('conlog', LT.add({ sandboxName: params.sandboxName }).toMessage({
     tags: [ 'constructor-begin' ],
     text: ' + constructor start in sandbox <{sandboxName}>'
   }));
@@ -40,6 +34,6 @@ var Service = function(params) {
   }));
 };
 
-Service.referenceList = [ 'jobqueueMaster', 'jobqueueWorker' ];
+JobqueueTrigger.referenceList = [ 'jobqueueMaster', 'jobqueueWorker' ];
 
-module.exports = Service;
+module.exports = JobqueueTrigger;

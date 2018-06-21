@@ -1,22 +1,22 @@
 'use strict';
 
-var events = require('events');
-var util = require('util');
-var Promise = Devebot.require('bluebird');
-var lodash = Devebot.require('lodash');
-var chores = Devebot.require('chores');
-var opflow = require('opflow');
+const events = require('events');
+const util = require('util');
+const Promise = Devebot.require('bluebird');
+const lodash = Devebot.require('lodash');
+const chores = Devebot.require('chores');
+const opflow = require('opflow');
 
-var Service = function(params) {
-  var self = this;
+function JobqueueMaster(params) {
+  let self = this;
   params = params || {};
 
-  var getSandboxName = function() {
+  let getSandboxName = function() {
     return params.sandboxName;
   };
 
-  var LX = params.loggingFactory.getLogger();
-  var LT = params.loggingFactory.getTracer();
+  let LX = params.loggingFactory.getLogger();
+  let LT = params.loggingFactory.getTracer();
 
   LX.has('conlog') && LX.log('conlog', LT.add({
     sandboxName: getSandboxName()
@@ -25,10 +25,10 @@ var Service = function(params) {
     text: ' + constructor start in sandbox <{sandboxName}>'
   }));
 
-  var pluginCfg = lodash.get(params, ['sandboxConfig'], {});
-  var rpcMasterCfg = lodash.get(pluginCfg, 'rpcMaster', { enabled: false });
+  let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  let rpcMasterCfg = lodash.get(pluginCfg, 'rpcMaster', { enabled: false });
   rpcMasterCfg.autoinit = false;
-  var rpcMaster = null;
+  let rpcMaster = null;
 
   self.ready = function() {
     if (rpcMasterCfg.enabled !== false) {
@@ -53,67 +53,51 @@ var Service = function(params) {
     runhook.requestId = runhook.requestId || LT.getLogID();
     runhook.optimestamp = Date.now();
 
-    var runhookName = chores.getFullname([runhook.package, runhook.name]);
-    var runhookInfo = lodash.omit(runhook, ['options', 'payload']);
+    let runhookName = chores.getFullname([runhook.package, runhook.name]);
+    let runhookInfo = lodash.omit(runhook, ['options', 'payload']);
 
-    var reqTr = LT.branch({ key: 'requestId', value: runhook.requestId });
+    let reqTr = LT.branch({ key: 'requestId', value: runhook.requestId });
 
     return rpcMaster.request(runhookName, runhook, {
       timeout: pluginCfg.opflowTimeout || 60000,
       requestId: runhook.requestId
     }).then(function(rpcTask) {
-      var stdTask = new events.EventEmitter();
+      let stdTask = new events.EventEmitter();
       rpcTask.on('started', function(info) {
-        LX.has('conlog') && LX.log('conlog', reqTr.add({
-          runhookName: runhookName
-        }).toMessage({
+        LX.has('conlog') && LX.log('conlog', reqTr.add({ runhookName }).toMessage({
           text: '{runhookName}[${requestId}] - started'
         }));
         stdTask.emit('started', info);
       }).on('progress', function(percent, chunk) {
-        LX.has('conlog') && LX.log('conlog', reqTr.add({
-          runhookName: runhookName,
-          percent: percent
-        }).toMessage({
+        LX.has('conlog') && LX.log('conlog', reqTr.add({ runhookName, percent }).toMessage({
           text: '{runhookName}[${requestId}] - progress: {percent}'
         }));
         stdTask.emit('progress', { progress: percent, data: chunk });
       }).on('timeout', function(info) {
-        LX.has('conlog') && LX.log('conlog', reqTr.add({
-          runhookName: runhookName
-        }).toMessage({
+        LX.has('conlog') && LX.log('conlog', reqTr.add({ runhookName }).toMessage({
           text: '{runhookName}[${requestId}] - timeout'
         }));
         stdTask.emit('timeout', info);
       }).on('cancelled', function(info) {
-        LX.has('conlog') && LX.log('conlog', reqTr.add({
-          runhookName: runhookName
-        }).toMessage({
+        LX.has('conlog') && LX.log('conlog', reqTr.add({ runhookName }).toMessage({
           text: '{runhookName}[${requestId}] - cancelled'
         }));
         stdTask.emit('cancelled', info);
       }).on('failed', function(error) {
-        LX.has('error') && LX.log('error', reqTr.add({
-          runhookName: runhookName,
-          error: error
-        }).toMessage({
+        LX.has('error') && LX.log('error', reqTr.add({ runhookName, error }).toMessage({
           text: '{runhookName}[${requestId}] - failed: {error}'
         }));
         stdTask.emit('failed', error);
       }).on('completed', function(result) {
-        LX.has('trace') && LX.log('trace', reqTr.add({
-          runhookName: runhookName
-        }).toMessage({
+        LX.has('trace') && LX.log('trace', reqTr.add({ runhookName }).toMessage({
           text: '{runhookName}[${requestId}] - completed'
         }));
-        LX.has('conlog') && LX.log('conlog', reqTr.add({
-          runhookName: runhookName,
-          runhook: runhookInfo,
-          result: result
-        }).toMessage({
-          text: '{runhookName}[${requestId}] - completed' +
-                ' - runhook: {runhook} - result: {result}'
-        }));
+        if (!LX.has('trace') && LX.has('conlog')) {
+          LX.log('conlog', reqTr.add({ runhookName, runhookInfo, result }).toMessage({
+            text: '{runhookName}[${requestId}] - completed' +
+                  ' - runhook: {runhook} - result: {result}'
+          }));
+        }
         stdTask.emit('completed', result);
       });
       return stdTask;
@@ -126,4 +110,4 @@ var Service = function(params) {
   }));
 };
 
-module.exports = Service;
+module.exports = JobqueueMaster;
