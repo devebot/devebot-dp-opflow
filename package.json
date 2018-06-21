@@ -3,21 +3,44 @@
   "version": "0.2.0",
   "description": "Devebot default plugin for Opflow",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "directories": {
+    "lib": "lib/"
   },
-  "author": "devebot",
+  "files": [
+    "bin/",
+    "config/",
+    "data/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "babel ./src -d ./lib",
+    "clean": "rm -rf ./lib",
+    "prepublish": "NODE_ENV=production npm run build",
+    "pretest": "NODE_ENV=test npm run build",
+    "test": "mocha ./test/**/*-test.js",
+    "verify": "npm run prepublish && mocha ./test/**/*-test.js"
+  },
+  "keywords": [
+    "devebot",
+    "devebot-plugin"
+  ],
+  "author": {
+    "name": "devebot",
+    "email": "contact@devebot.com",
+    "url": "https://github.com/devebot"
+  },
   "license": "MIT",
   "peerDependencies": {
-    "devebot": "^0.2.6"
+    "devebot": "^0.2.7"
   },
   "dependencies": {
-    "devebot": "^0.2.6",
+    "devebot": "^0.2.7",
     "opflow": "^0.1.7"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "devebot-test": "^0.2.2",
-    "mocha": "^3.5.3"
+    "babel-cli": "^6.26.0",
+    "babel-plugin-minify-mangle-names": "^0.3.0",
+    "babel-preset-env": "^1.6.1",
+    "mocha": "^4.1.0"
   }
 }

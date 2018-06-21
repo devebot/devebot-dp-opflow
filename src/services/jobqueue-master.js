@@ -67,7 +67,7 @@ var Service = function(params) {
         LX.has('conlog') && LX.log('conlog', reqTr.add({
           runhookName: runhookName
         }).toMessage({
-          text: '{runhookName}#{requestId} - started'
+          text: '{runhookName}[${requestId}] - started'
         }));
         stdTask.emit('started', info);
       }).on('progress', function(percent, chunk) {
@@ -75,21 +75,21 @@ var Service = function(params) {
           runhookName: runhookName,
           percent: percent
         }).toMessage({
-          text: '{runhookName}#{requestId} - progress: {percent}'
+          text: '{runhookName}[${requestId}] - progress: {percent}'
         }));
         stdTask.emit('progress', { progress: percent, data: chunk });
       }).on('timeout', function(info) {
         LX.has('conlog') && LX.log('conlog', reqTr.add({
           runhookName: runhookName
         }).toMessage({
-          text: '{runhookName}#{requestId} - timeout'
+          text: '{runhookName}[${requestId}] - timeout'
         }));
         stdTask.emit('timeout', info);
       }).on('cancelled', function(info) {
         LX.has('conlog') && LX.log('conlog', reqTr.add({
           runhookName: runhookName
         }).toMessage({
-          text: '{runhookName}#{requestId} - cancelled'
+          text: '{runhookName}[${requestId}] - cancelled'
         }));
         stdTask.emit('cancelled', info);
       }).on('failed', function(error) {
@@ -97,21 +97,21 @@ var Service = function(params) {
           runhookName: runhookName,
           error: error
         }).toMessage({
-          text: '{runhookName}#{requestId} - failed: {error}'
+          text: '{runhookName}[${requestId}] - failed: {error}'
         }));
         stdTask.emit('failed', error);
       }).on('completed', function(result) {
         LX.has('trace') && LX.log('trace', reqTr.add({
           runhookName: runhookName
         }).toMessage({
-          text: '{runhookName}#{requestId} - completed'
+          text: '{runhookName}[${requestId}] - completed'
         }));
         LX.has('conlog') && LX.log('conlog', reqTr.add({
           runhookName: runhookName,
           runhook: runhookInfo,
           result: result
         }).toMessage({
-          text: '{runhookName}#{requestId} - completed' +
+          text: '{runhookName}[${requestId}] - completed' +
                 ' - runhook: {runhook} - result: {result}'
         }));
         stdTask.emit('completed', result);

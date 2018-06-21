@@ -23,7 +23,7 @@ var Service = function(params) {
     text: ' + constructor start in sandbox <{sandboxName}>'
   }));
 
-  var runhookManager = params['devebot/runhookManager'];
+  var sandboxRegistry = params['devebot/sandboxRegistry'];
   var pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   var rpcWorkerCfg = lodash.get(pluginCfg, 'rpcWorker', { enabled: false });
   rpcWorkerCfg.autoinit = false;
@@ -34,6 +34,7 @@ var Service = function(params) {
       rpcWorker = rpcWorker || new opflow.RpcWorker(rpcWorkerCfg);
     }
     if (!rpcWorker) return Promise.resolve();
+    var runhookManager = sandboxRegistry.lookupService('devebot/runhookManager');
     return rpcWorker.ready().then(function() {
       LX.has('conlog') && LX.log('conlog', LT.toMessage({
         text: ' - rpcWorker is available'
@@ -114,6 +115,6 @@ var Service = function(params) {
   }));
 };
 
-Service.referenceList = [ 'devebot/runhookManager' ];
+Service.referenceList = [ 'devebot/sandboxRegistry' ];
 
 module.exports = Service;
