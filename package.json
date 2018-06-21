@@ -9,10 +9,10 @@
   "author": "devebot",
   "license": "MIT",
   "peerDependencies": {
-    "devebot": "^0.2.4"
+    "devebot": "^0.2.6"
   },
   "dependencies": {
-    "devebot": "^0.2.4",
+    "devebot": "^0.2.6",
     "opflow": "^0.1.7"
   },
   "devDependencies": {

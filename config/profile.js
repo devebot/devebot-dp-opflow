@@ -6,7 +6,7 @@ module.exports = {
     }
   },
   newFeatures: {
-    devebotDpOpflow: {
+    opflow: {
       logoliteEnabled: true,
       sandboxConfig: true
     }
